@@ -582,7 +582,7 @@ export default async function Home() {
       <section className="container mx-auto max-w-4xl px-4 py-8 sm:py-12">
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-xl font-bold tracking-tight sm:mb-8 sm:text-2xl">Latest Blog Posts</h2>
-          <Button variant="outline" className="gap-2" asChild>
+          <Button variant="outline" className="h-8 w-fit sm:h-10 transition-all duration-200 hover:bg-[#1a1f36] hover:text-white dark:hover:bg-white dark:hover:text-[#1a1f36]" asChild>
             <a href="/blog">
               View All
               <FiExternalLink className="h-4 w-4" />
@@ -620,8 +620,10 @@ export default async function Home() {
                         </div>
                       </div>
                     </div>
-                    {post.tags?.[0] && (
-                      <Badge>{post.tags[0]}</Badge>
+                    {post.category && (
+                      <Badge variant="outline" className="min-w-[80px] h-6 flex items-center justify-center shrink-0">
+                        {post.category}
+                      </Badge>
                     )}
                   </div>
                 </CardHeader>

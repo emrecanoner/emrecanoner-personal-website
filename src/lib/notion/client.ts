@@ -25,6 +25,7 @@ export interface NotionBlogPost {
   content: string
   published: boolean
   tags?: string[]
+  category?: string
 }
 
 interface NotionText {
@@ -53,6 +54,7 @@ interface NotionProperty {
   date?: { start: string; end: string | null }
   checkbox?: boolean
   multi_select?: Array<{ id: string; name: string; color: string }>
+  select?: { id: string; name: string; color: string }
 }
 
 interface NotionProperties {
@@ -89,7 +91,8 @@ export async function getBlogPosts(): Promise<NotionBlogPost[]> {
         date: props.Date?.date?.start || '',
         content: props.Content?.rich_text?.[0]?.plain_text || '',
         published: props.Published?.checkbox || false,
-        tags: props.Tags?.multi_select?.map((tag) => tag.name) || []
+        tags: props.Tags?.multi_select?.map((tag) => tag.name) || [],
+        category: props.Category?.select?.name || ''
       }
     })
   } catch (error) {
@@ -147,7 +150,9 @@ export async function getBlogPost(slug: string): Promise<NotionBlogPost | null> 
       // @ts-ignore
       published: page.properties.Published.checkbox,
       // @ts-ignore
-      tags: page.properties.Tags?.multi_select.map(tag => tag.name) || []
+      tags: page.properties.Tags?.multi_select.map(tag => tag.name) || [],
+      // @ts-ignore
+      category: page.properties.Category?.select?.name || ''
     }
   } catch (error) {
     console.error('Error fetching blog post:', error)
