@@ -79,4 +79,76 @@ export async function getUserProfile(): Promise<UserProfile> {
 
   if (profileError) throw profileError
   return profile
+}
+
+interface EducationProject {
+  title: string
+  description: string
+  github_url: string | null
+  technologies: string[]
+  education: {
+    end_date: string | null
+  }
+}
+
+interface ExperienceProject {
+  title: string
+  description: string
+  github_url: string | null
+  technologies: string[]
+  experience: {
+    end_date: string | null
+  }
+}
+
+export async function getRandomProjects() {
+  // Eğitim projelerini al
+  const { data: educationProjects } = await supabase
+    .from('education_projects')
+    .select(`
+      title,
+      description,
+      github_url,
+      technologies,
+      education:education!inner (
+        end_date
+      )
+    `)
+    .limit(3) as { data: EducationProject[] | null }
+
+  // İş deneyimi projelerini al
+  const { data: experienceProjects } = await supabase
+    .from('experience_projects')
+    .select(`
+      title,
+      description,
+      github_url,
+      technologies,
+      experience:experience!inner (
+        end_date
+      )
+    `)
+    .limit(3) as { data: ExperienceProject[] | null }
+
+  // Eğitim projelerini formatla
+  const formattedEduProjects = (educationProjects || []).map(project => ({
+    title: project.title,
+    description: project.description,
+    github_url: project.github_url,
+    technologies: project.technologies || [],
+    type: 'education' as const,
+    date: project.education?.end_date || 'Present'
+  }))
+
+  // İş deneyimi projelerini formatla
+  const formattedExpProjects = (experienceProjects || []).map(project => ({
+    title: project.title,
+    description: project.description,
+    github_url: project.github_url,
+    technologies: project.technologies || [],
+    type: 'experience' as const,
+    date: project.experience?.end_date || 'Present'
+  }))
+
+  return [...formattedEduProjects, ...formattedExpProjects]
 } 

@@ -15,7 +15,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { getEducation, getExperience, getSkills, getProjects, getBlogPosts, getCertificates, getUserProfile } from '@/supabase/queries'
+import { getEducation, getExperience, getSkills, getProjects, getBlogPosts, getCertificates, getUserProfile, getRandomProjects } from '@/supabase/queries'
 import { ScrollProgress } from '@/components/ui/scroll-progress'
 
 export default async function Home() {
@@ -23,8 +23,7 @@ export default async function Home() {
   const userProfile = await getUserProfile()
   const experience = await getExperience()
   const education = await getEducation()
-  // Diğer verileri geçici olarak devre dışı bırak
-  // const skills = await getSkills()
+  const skills = await getSkills()
   // const projects = await getProjects()
   // const blogPosts = await getBlogPosts()
   // const certificates = await getCertificates()
@@ -486,207 +485,52 @@ export default async function Home() {
 
       {/* Skills Section */}
       <section className="container mx-auto max-w-4xl px-4 py-8 sm:py-12">
-        <h2 className="mb-6 text-xl font-bold tracking-tight sm:mb-8 sm:text-2xl">Skills</h2>
+        <div className="mb-6 flex items-center justify-between sm:mb-8">
+          <h2 className="text-xl font-bold tracking-tight sm:text-2xl">Skills</h2>
+          <Button variant="outline" size="sm" className="gap-2" asChild>
+            <a href="http://www.hackerrank.com/emrecanoner" target="_blank" rel="noopener noreferrer">
+              <FontAwesomeIcon icon={faHackerrank} className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              HackerRank Profile
+            </a>
+          </Button>
+        </div>
         <div className="grid gap-6 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Frontend</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-wrap gap-2">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Badge variant="outline" className="px-3 py-1">
-                      <span className="font-medium">React & Next.js</span>
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Experience in modern web app development, SSR, and SSG</p>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Badge variant="outline" className="px-3 py-1">
-                      <span className="font-medium">TypeScript</span>
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Type-safe development and large-scale applications</p>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Badge variant="outline" className="px-3 py-1">
-                      <span className="font-medium">Tailwind CSS</span>
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Modern and responsive designs, custom components</p>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Badge variant="outline" className="px-3 py-1">
-                      <span className="font-medium">Redux</span>
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>State management and complex data flow</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Backend</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-wrap gap-2">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Badge variant="outline" className="px-3 py-1">
-                      <span className="font-medium">Node.js</span>
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Express.js, RESTful APIs, and microservices</p>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Badge variant="outline" className="px-3 py-1">
-                      <span className="font-medium">Python</span>
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Django, FastAPI, and data analysis</p>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Badge variant="outline" className="px-3 py-1">
-                      <span className="font-medium">PostgreSQL</span>
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Relational database design and optimization</p>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Badge variant="outline" className="px-3 py-1">
-                      <span className="font-medium">MongoDB</span>
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>NoSQL database and schema-less data modeling</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">DevOps</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-wrap gap-2">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Badge variant="outline" className="px-3 py-1">
-                      <span className="font-medium">Docker</span>
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Containerization and multi-container management</p>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Badge variant="outline" className="px-3 py-1">
-                      <span className="font-medium">Kubernetes</span>
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Container orchestration and scaling</p>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Badge variant="outline" className="px-3 py-1">
-                      <span className="font-medium">AWS</span>
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Cloud infrastructure and service management</p>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Badge variant="outline" className="px-3 py-1">
-                      <span className="font-medium">CI/CD</span>
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Continuous integration and deployment processes</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Tools</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-wrap gap-2">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Badge variant="outline" className="px-3 py-1">
-                      <span className="font-medium">Git</span>
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Version control and team collaboration</p>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Badge variant="outline" className="px-3 py-1">
-                      <span className="font-medium">VS Code</span>
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Advanced code editing and debugging</p>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Badge variant="outline" className="px-3 py-1">
-                      <span className="font-medium">Figma</span>
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>UI/UX design and prototyping</p>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Badge variant="outline" className="px-3 py-1">
-                      <span className="font-medium">Jira</span>
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Project management and agile methodologies</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </CardContent>
-          </Card>
+          {Object.entries(
+            skills.reduce((acc, skill) => {
+              if (!acc[skill.category]) {
+                acc[skill.category] = [];
+              }
+              acc[skill.category].push(skill);
+              return acc;
+            }, {} as Record<string, typeof skills>)
+          ).map(([category, categorySkills]) => (
+            <Card key={category}>
+              <CardHeader>
+                <CardTitle className="text-lg">{category}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
+                  {categorySkills.map((skill) => (
+                    <TooltipProvider key={skill.id}>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Badge 
+                            variant="secondary"
+                            className="px-3 py-1 transition-colors hover:bg-primary hover:text-primary-foreground"
+                          >
+                            <span className="font-medium">{skill.name}</span>
+                          </Badge>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{skill.description}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </section>
 
@@ -694,87 +538,42 @@ export default async function Home() {
       <section className="container mx-auto max-w-4xl px-4 py-8 sm:py-12">
         <h2 className="mb-6 text-xl font-bold tracking-tight sm:mb-8 sm:text-2xl">Featured Projects</h2>
         <div className="grid gap-6 md:grid-cols-2">
-          <Card className="group relative flex h-full flex-col overflow-hidden transition-all hover:shadow-lg">
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div>
-                  <CardTitle className="text-lg">Personal Website</CardTitle>
-                  <CardDescription>Personal website and blog platform</CardDescription>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <FiStar className="h-4 w-4" />
-                    <span>12</span>
+          {(await getRandomProjects()).map((project) => (
+            <Card key={project.title} className="group relative flex h-full flex-col overflow-hidden transition-all hover:shadow-lg">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <CardTitle className="text-lg">{project.title}</CardTitle>
+                    <CardDescription>{project.description}</CardDescription>
                   </div>
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <FiGitBranch className="h-4 w-4" />
-                    <span>3</span>
+                  <Badge variant="outline" className="transition-colors hover:bg-primary hover:text-primary-foreground">
+                    {project.type === 'education' ? 'Academic' : 'Professional'}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="flex flex-col flex-grow">
+                <div className="mt-auto space-y-4">
+                  <div className="flex flex-wrap gap-2">
+                    {project.technologies?.map((tech, index) => (
+                      <Badge key={index} variant="secondary" className="transition-colors hover:bg-primary hover:text-primary-foreground">
+                        {tech}
+                      </Badge>
+                    ))}
                   </div>
+                  {project.github_url && (
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm" className="gap-2 transition-all duration-200 hover:bg-[#1a1f36] hover:text-white dark:hover:bg-white dark:hover:text-[#1a1f36]" asChild>
+                        <a href={project.github_url} target="_blank" rel="noopener noreferrer">
+                          <FiGithub className="h-4 w-4" />
+                          Source Code
+                        </a>
+                      </Button>
+                    </div>
+                  )}
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent className="flex flex-col flex-grow">
-              <p className="text-sm text-muted-foreground mb-4">
-                A modern and minimalist personal website built with Next.js 14, TypeScript, and Tailwind CSS.
-              </p>
-              <div className="mt-auto space-y-4">
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="secondary">Next.js</Badge>
-                  <Badge variant="secondary">TypeScript</Badge>
-                  <Badge variant="secondary">Tailwind CSS</Badge>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" className="gap-2" asChild>
-                    <a href="https://github.com/emrecanoner/emrecanoner-personal-website" target="_blank" rel="noopener noreferrer">
-                      <FiGithub className="h-4 w-4" />
-                      Source Code
-                    </a>
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="group relative flex h-full flex-col overflow-hidden transition-all hover:shadow-lg">
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div>
-                  <CardTitle className="text-lg">DevOps Pipeline</CardTitle>
-                  <CardDescription>CI/CD Pipeline Project</CardDescription>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <FiStar className="h-4 w-4" />
-                    <span>8</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <FiGitBranch className="h-4 w-4" />
-                    <span>2</span>
-                  </div>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="flex flex-col flex-grow">
-              <p className="text-sm text-muted-foreground mb-4">
-                A modern CI/CD pipeline example built using Docker and Kubernetes.
-              </p>
-              <div className="mt-auto space-y-4">
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="secondary">Docker</Badge>
-                  <Badge variant="secondary">Kubernetes</Badge>
-                  <Badge variant="secondary">Jenkins</Badge>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" className="gap-2" asChild>
-                    <a href="#" target="_blank" rel="noopener noreferrer">
-                      <FiGithub className="h-4 w-4" />
-                      Source Code
-                    </a>
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </section>
 
