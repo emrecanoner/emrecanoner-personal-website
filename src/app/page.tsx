@@ -17,20 +17,39 @@ import {
 } from "@/components/ui/tooltip"
 import { getEducation, getExperience, getSkills, getProjects, getCertificates, getUserProfile, getRandomProjects } from '@/supabase/queries'
 import { getBlogPosts } from '@/lib/notion/client'
+import { getPostViews } from '@/supabase/queries'
 import { ScrollProgress } from '@/components/ui/scroll-progress'
+import { PostMeta } from '@/components/blog/post-meta'
+import { Suspense } from 'react'
+import { Loading } from '@/components/ui/loading'
 
 export default async function Home() {
+  return (
+    <div className="relative min-h-screen bg-background">
+      <Suspense fallback={<Loading />}>
+        <HomeContent />
+      </Suspense>
+    </div>
+  )
+}
+
+async function HomeContent() {
   // Verileri çek
   const userProfile = await getUserProfile()
   const experience = await getExperience()
   const education = await getEducation()
   const skills = await getSkills()
-  // const projects = await getProjects()
-  // const blogPosts = await getBlogPosts()
-  // const certificates = await getCertificates()
+  const blogPosts = await getBlogPosts()
+  
+  const postsWithViews = await Promise.all(
+    blogPosts.slice(0, 3).map(async (post) => {
+      const views = await getPostViews(post.slug)
+      return { ...post, views }
+    })
+  )
 
   return (
-    <main className="flex min-h-screen flex-col bg-background pt-8">
+    <main className="mx-auto max-w-4xl px-4 pt-8">
       <ScrollProgress />
       {/* Hero Section */}
       <section className="container relative mx-auto max-w-4xl px-4 pb-12 sm:pb-16">
@@ -590,35 +609,21 @@ export default async function Home() {
           </Button>
         </div>
         <div className="grid gap-6">
-          {(await getBlogPosts()).slice(0, 3).map((post) => (
-            <Link key={post.id} href={`/blog/${post.slug}`}>
+          {postsWithViews.map((post) => (
+            <Link key={post.id} href={`/blog/${post.slug}`} scroll={false}>
               <Card className="group relative transition-all hover:shadow-lg">
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div>
-                      <CardTitle className="text-lg group-hover:text-primary">
+                      <CardTitle className="text-lg group-hover:text-primary mb-2.5">
                         {post.title}
                       </CardTitle>
-                      <div className="mt-1 flex flex-col gap-1.5 text-sm text-muted-foreground sm:flex-row sm:items-center sm:gap-3">
-                        <div className="flex items-center gap-1.5">
-                          <FiCalendar className="h-3.5 w-3.5" />
-                          <time>
-                            {new Date(post.date).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric'
-                            })}
-                          </time>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <FiClock className="h-3.5 w-3.5" />
-                          <span>5 min read</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <FiEye className="h-3.5 w-3.5" />
-                          <span>1.2K views</span>
-                        </div>
-                      </div>
+                      <PostMeta
+                        date={post.date}
+                        readingTime={post.reading_time}
+                        views={post.views}
+                        className="mt-1"
+                      />
                     </div>
                     {post.category && (
                       <Badge variant="outline" className="min-w-[80px] h-6 flex items-center justify-center shrink-0">

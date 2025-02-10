@@ -5,6 +5,7 @@ import Navbar from "@/components/ui/navbar";
 import { ThemeProvider } from "@/lib/theme-provider";
 import { ScrollProgress } from "@/components/ui/scroll-progress";
 import { BackToTop } from "@/components/ui/back-to-top";
+import { ScrollToTop } from "@/components/scroll-to-top";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -26,6 +27,7 @@ export default function RootLayout({
             <Navbar />
             <ScrollProgress />
             <main className="min-h-screen">
+              <ScrollToTop />
               {children}
             </main>
             <BackToTop />

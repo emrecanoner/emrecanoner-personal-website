@@ -1,6 +1,13 @@
 import { Client } from '@notionhq/client'
 import { isFullPage } from '@notionhq/client'
-import { PageObjectResponse } from '@notionhq/client/build/src/api-endpoints'
+import { 
+  PageObjectResponse, 
+  BlockObjectResponse,
+  RichTextItemResponse,
+  BulletedListItemBlockObjectResponse,
+  NumberedListItemBlockObjectResponse
+} from '@notionhq/client/build/src/api-endpoints'
+import { calculateReadingTime } from '@/lib/utils'
 
 if (!process.env.NOTION_API_KEY) {
   throw new Error('Missing Notion API key')
@@ -26,6 +33,8 @@ export interface NotionBlogPost {
   published: boolean
   tags?: string[]
   category?: string
+  views?: number
+  reading_time?: number
 }
 
 interface NotionText {
@@ -79,9 +88,11 @@ export async function getBlogPosts(): Promise<NotionBlogPost[]> {
       ],
     })
 
-    return response.results.map((page) => {
+    return Promise.all(response.results.map(async (page) => {
       const { properties } = page as PageObjectResponse
       const props = properties as unknown as NotionProperties
+      
+      const pageContent = await getBlockContent(page.id)
 
       return {
         id: page.id,
@@ -89,16 +100,128 @@ export async function getBlogPosts(): Promise<NotionBlogPost[]> {
         slug: props.Slug?.rich_text?.[0]?.plain_text || '',
         description: props.Description?.rich_text?.[0]?.plain_text || '',
         date: props.Date?.date?.start || '',
-        content: props.Content?.rich_text?.[0]?.plain_text || '',
+        content: pageContent,
         published: props.Published?.checkbox || false,
         tags: props.Tags?.multi_select?.map((tag) => tag.name) || [],
-        category: props.Category?.select?.name || ''
+        category: props.Category?.select?.name || '',
+        reading_time: calculateReadingTime(pageContent)
       }
-    })
+    }))
   } catch (error) {
     console.error('Error fetching blog posts:', error)
     return []
   }
+}
+
+async function getBlockContent(blockId: string): Promise<string> {
+  try {
+    const response = await notion.blocks.children.list({
+      block_id: blockId,
+      page_size: 100,
+    })
+
+    let content = ''
+    let currentList: string | null = null
+
+    for (const block of response.results as BlockObjectResponse[]) {
+      if ('type' in block) {
+        const blockContent = await renderBlock(block)
+        content += blockContent
+      }
+    }
+
+    return content
+  } catch (error) {
+    console.error('Error getting block content:', error)
+    return ''
+  }
+}
+
+async function renderBlock(block: BlockObjectResponse): Promise<string> {
+  if (!('type' in block)) return ''
+  
+  const { type } = block
+
+  switch (type) {
+    case 'paragraph': {
+      const { paragraph } = block
+      return paragraph.rich_text.length === 0 
+        ? '\n'
+        : `${renderRichText(paragraph.rich_text)}\n\n`
+    }
+    case 'heading_1': {
+      const { heading_1 } = block
+      return `# ${renderRichText(heading_1.rich_text)}\n\n`
+    }
+    case 'heading_2': {
+      const { heading_2 } = block
+      return `## ${renderRichText(heading_2.rich_text)}\n\n`
+    }
+    case 'heading_3': {
+      const { heading_3 } = block
+      return `### ${renderRichText(heading_3.rich_text)}\n\n`
+    }
+    case 'bulleted_list_item': {
+      const { bulleted_list_item } = block
+      return `- ${renderRichText(bulleted_list_item.rich_text)}\n`
+    }
+    case 'numbered_list_item': {
+      const { numbered_list_item } = block
+      return `1. ${renderRichText(numbered_list_item.rich_text)}\n`
+    }
+    case 'code': {
+      const { code } = block
+      // Eğer markdown code bloğu ise, içeriği doğrudan döndür
+      if (code.language === 'markdown') {
+        return renderRichText(code.rich_text)
+      }
+      // Diğer code blokları için normal işleme devam et
+      return `\`\`\`${code.language}\n${renderRichText(code.rich_text)}\n\`\`\`\n\n`
+    }
+    case 'quote': {
+      const { quote } = block
+      return `> ${renderRichText(quote.rich_text)}\n\n`
+    }
+    case 'image': {
+      const { image } = block
+      const src = image.type === 'external' ? image.external.url : image.file.url
+      const caption = image.caption ? renderRichText(image.caption) : ''
+      return `![${caption}](${src})\n\n`
+    }
+    case 'divider':
+      return '---\n\n'
+    default:
+      return ''
+  }
+}
+
+function renderRichText(richText: RichTextItemResponse[]): string {
+  if (!richText) {
+    return ''
+  }
+
+  return richText.map(text => {
+    const { annotations, href, plain_text } = text
+    let content = plain_text
+
+    if (annotations.code) {
+      content = `\`${content}\``
+    }
+    if (annotations.bold) {
+      content = `**${content}**`
+    }
+    if (annotations.italic) {
+      content = `*${content}*`
+    }
+    if (annotations.strikethrough) {
+      content = `~~${content}~~`
+    }
+    if (href) {
+      content = `[${content}](${href})`
+    }
+
+    return content
+  }).join('')
 }
 
 export async function getBlogPost(slug: string): Promise<NotionBlogPost | null> {
@@ -127,35 +250,26 @@ export async function getBlogPost(slug: string): Promise<NotionBlogPost | null> 
       return null
     }
 
-    // @ts-ignore - Notion API tip tanımlamaları için geçici çözüm
-    const page = response.results[0]
-    const blocks = await notion.blocks.children.list({
-      block_id: page.id,
-    })
+    const page = response.results[0] as PageObjectResponse
+    const { properties } = page
+    const props = properties as unknown as NotionProperties
 
-    // Bu kısımda blocks'u HTML'e çevirme işlemi yapılacak
-    const content = '' // TODO: blocks'u HTML'e çevir
+    const pageContent = await getBlockContent(page.id)
 
     return {
       id: page.id,
-      // @ts-ignore
-      title: page.properties.Title.title[0].text.plain_text,
-      // @ts-ignore
-      slug: page.properties.Slug.text[0].plain_text,
-      // @ts-ignore
-      description: page.properties.Description.text[0].plain_text,
-      // @ts-ignore
-      date: page.properties.Date.date.start,
-      content,
-      // @ts-ignore
-      published: page.properties.Published.checkbox,
-      // @ts-ignore
-      tags: page.properties.Tags?.multi_select.map(tag => tag.name) || [],
-      // @ts-ignore
-      category: page.properties.Category?.select?.name || ''
+      title: props.Title?.title?.[0]?.plain_text || '',
+      slug: props.Slug?.rich_text?.[0]?.plain_text || '',
+      description: props.Description?.rich_text?.[0]?.plain_text || '',
+      date: props.Date?.date?.start || '',
+      content: pageContent,
+      published: props.Published?.checkbox || false,
+      tags: props.Tags?.multi_select?.map((tag) => tag.name) || [],
+      category: props.Category?.select?.name || '',
+      reading_time: calculateReadingTime(pageContent)
     }
   } catch (error) {
     console.error('Error fetching blog post:', error)
     return null
   }
-} 
+}

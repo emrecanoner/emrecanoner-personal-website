@@ -140,4 +140,48 @@ export async function getRandomProjects() {
   }))
 
   return [...formattedEduProjects, ...formattedExpProjects]
+}
+
+export async function getPostViews(slug: string): Promise<number> {
+  const { data, error } = await supabase
+    .from('post_views')
+    .select('views')
+    .eq('slug', slug)
+    .single()
+
+  if (error) {
+    console.error('Error fetching post views:', error)
+    return 0
+  }
+
+  return data?.views || 0
+}
+
+export async function incrementPostViews(slug: string): Promise<void> {
+  const { error: selectError, data: existingView } = await supabase
+    .from('post_views')
+    .select('views')
+    .eq('slug', slug)
+    .single()
+
+  if (selectError) {
+    // Post henüz görüntülenmemiş, yeni kayıt oluştur
+    const { error: insertError } = await supabase
+      .from('post_views')
+      .insert([{ slug, views: 1 }])
+
+    if (insertError) {
+      console.error('Error inserting post views:', insertError)
+    }
+  } else {
+    // Mevcut görüntülenme sayısını artır
+    const { error: updateError } = await supabase
+      .from('post_views')
+      .update({ views: (existingView?.views || 0) + 1 })
+      .eq('slug', slug)
+
+    if (updateError) {
+      console.error('Error updating post views:', updateError)
+    }
+  }
 } 
