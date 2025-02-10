@@ -24,19 +24,39 @@ export interface NotionBlogPost {
   date: string
   content: string
   published: boolean
+  tags?: string[]
 }
 
-type NotionProperties = {
-  title: { title: Array<{ plain_text: string }> }
-  slug: { rich_text: Array<{ plain_text: string }> }
-  description: { rich_text: Array<{ plain_text: string }> }
-  date: { date: { start: string } }
-  published: { checkbox: boolean }
+interface NotionText {
+  type: 'text'
+  text: {
+    content: string
+    link: string | null
+  }
+  annotations: {
+    bold: boolean
+    italic: boolean
+    strikethrough: boolean
+    underline: boolean
+    code: boolean
+    color: string
+  }
+  plain_text: string
+  href: string | null
 }
 
-type NotionPage = {
+interface NotionProperty {
   id: string
-  properties: NotionProperties
+  type: string
+  title?: Array<NotionText>
+  rich_text?: Array<NotionText>
+  date?: { start: string; end: string | null }
+  checkbox?: boolean
+  multi_select?: Array<{ id: string; name: string; color: string }>
+}
+
+interface NotionProperties {
+  [key: string]: NotionProperty
 }
 
 export async function getBlogPosts(): Promise<NotionBlogPost[]> {
@@ -44,34 +64,34 @@ export async function getBlogPosts(): Promise<NotionBlogPost[]> {
     const response = await notion.databases.query({
       database_id: BLOG_DATABASE_ID,
       filter: {
-        property: 'published',
+        property: 'Published',
         checkbox: {
           equals: true,
         },
       },
       sorts: [
         {
-          property: 'date',
+          property: 'Date',
           direction: 'descending',
         },
       ],
     })
 
-    // @ts-ignore - Notion API tip tanımlamaları için geçici çözüm
-    return response.results.map((page) => ({
-      id: page.id,
-      // @ts-ignore
-      title: page.properties.title.title[0].plain_text,
-      // @ts-ignore
-      slug: page.properties.slug.rich_text[0].plain_text,
-      // @ts-ignore
-      description: page.properties.description.rich_text[0].plain_text,
-      // @ts-ignore
-      date: page.properties.date.date.start,
-      content: '',
-      // @ts-ignore
-      published: page.properties.published.checkbox,
-    }))
+    return response.results.map((page) => {
+      const { properties } = page as PageObjectResponse
+      const props = properties as unknown as NotionProperties
+
+      return {
+        id: page.id,
+        title: props.Title?.title?.[0]?.plain_text || '',
+        slug: props.Slug?.rich_text?.[0]?.plain_text || '',
+        description: props.Description?.rich_text?.[0]?.plain_text || '',
+        date: props.Date?.date?.start || '',
+        content: props.Content?.rich_text?.[0]?.plain_text || '',
+        published: props.Published?.checkbox || false,
+        tags: props.Tags?.multi_select?.map((tag) => tag.name) || []
+      }
+    })
   } catch (error) {
     console.error('Error fetching blog posts:', error)
     return []
@@ -85,13 +105,13 @@ export async function getBlogPost(slug: string): Promise<NotionBlogPost | null> 
       filter: {
         and: [
           {
-            property: 'slug',
+            property: 'Slug',
             rich_text: {
               equals: slug,
             },
           },
           {
-            property: 'published',
+            property: 'Published',
             checkbox: {
               equals: true,
             },
@@ -116,16 +136,18 @@ export async function getBlogPost(slug: string): Promise<NotionBlogPost | null> 
     return {
       id: page.id,
       // @ts-ignore
-      title: page.properties.title.title[0].plain_text,
+      title: page.properties.Title.title[0].text.plain_text,
       // @ts-ignore
-      slug: page.properties.slug.rich_text[0].plain_text,
+      slug: page.properties.Slug.text[0].plain_text,
       // @ts-ignore
-      description: page.properties.description.rich_text[0].plain_text,
+      description: page.properties.Description.text[0].plain_text,
       // @ts-ignore
-      date: page.properties.date.date.start,
+      date: page.properties.Date.date.start,
       content,
       // @ts-ignore
-      published: page.properties.published.checkbox,
+      published: page.properties.Published.checkbox,
+      // @ts-ignore
+      tags: page.properties.Tags?.multi_select.map(tag => tag.name) || []
     }
   } catch (error) {
     console.error('Error fetching blog post:', error)

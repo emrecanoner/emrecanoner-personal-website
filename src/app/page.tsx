@@ -15,7 +15,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { getEducation, getExperience, getSkills, getProjects, getBlogPosts, getCertificates, getUserProfile, getRandomProjects } from '@/supabase/queries'
+import { getEducation, getExperience, getSkills, getProjects, getCertificates, getUserProfile, getRandomProjects } from '@/supabase/queries'
+import { getBlogPosts } from '@/lib/notion/client'
 import { ScrollProgress } from '@/components/ui/scroll-progress'
 
 export default async function Home() {
@@ -589,41 +590,52 @@ export default async function Home() {
           </Button>
         </div>
         <div className="grid gap-6">
-          <Link href="/blog/modern-web-development">
-            <Card className="group relative transition-all hover:shadow-lg">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle className="text-lg group-hover:text-primary">Modern Web Development</CardTitle>
-                    <div className="mt-1 flex items-center gap-3 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1.5">
-                        <FiCalendar className="h-3.5 w-3.5" />
-                        <time>February 20, 2024</time>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <FiClock className="h-3.5 w-3.5" />
-                        <span>5 min read</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <FiEye className="h-3.5 w-3.5" />
-                        <span>1.2K views</span>
+          {(await getBlogPosts()).slice(0, 3).map((post) => (
+            <Link key={post.id} href={`/blog/${post.slug}`}>
+              <Card className="group relative transition-all hover:shadow-lg">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <CardTitle className="text-lg group-hover:text-primary">
+                        {post.title}
+                      </CardTitle>
+                      <div className="mt-1 flex flex-col gap-1.5 text-sm text-muted-foreground sm:flex-row sm:items-center sm:gap-3">
+                        <div className="flex items-center gap-1.5">
+                          <FiCalendar className="h-3.5 w-3.5" />
+                          <time>
+                            {new Date(post.date).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
+                          </time>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <FiClock className="h-3.5 w-3.5" />
+                          <span>5 min read</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <FiEye className="h-3.5 w-3.5" />
+                          <span>1.2K views</span>
+                        </div>
                       </div>
                     </div>
+                    {post.tags?.[0] && (
+                      <Badge>{post.tags[0]}</Badge>
+                    )}
                   </div>
-                  <Badge>Web Development</Badge>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    {post.description}
+                  </p>
+                </CardContent>
+                <div className="absolute inset-0 flex items-center justify-center bg-background/80 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
+                  <p className="text-sm font-medium">Continue reading →</p>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  My thoughts on modern web development technologies and best practices.
-                  A comprehensive guide on using React, Next.js, and other modern tools.
-                </p>
-              </CardContent>
-              <div className="absolute inset-0 flex items-center justify-center bg-background/80 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
-                <p className="text-sm font-medium">Continue reading →</p>
-              </div>
-            </Card>
-          </Link>
+              </Card>
+            </Link>
+          ))}
         </div>
       </section>
 

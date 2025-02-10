@@ -50,17 +50,6 @@ export async function getProjects(): Promise<Project[]> {
   return data
 }
 
-export async function getBlogPosts(): Promise<BlogPost[]> {
-  const { data, error } = await supabase
-    .from('blog_posts')
-    .select('*')
-    .order('published_date', { ascending: false })
-    .limit(3)
-
-  if (error) throw error
-  return data
-}
-
 export async function getCertificates(): Promise<Certificate[]> {
   const { data, error } = await supabase
     .from('certificates')

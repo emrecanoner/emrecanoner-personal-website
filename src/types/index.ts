@@ -59,14 +59,16 @@ export interface Project {
 }
 
 export interface BlogPost {
-  id: number
+  id: string
   title: string
   description: string
   slug: string
-  published_date: string
-  reading_time: number
-  views: number
-  category: string
+  date: string
+  content: string
+  published: boolean
+  tags?: string[]
+  reading_time?: number
+  views?: number
 }
 
 export interface Certificate {

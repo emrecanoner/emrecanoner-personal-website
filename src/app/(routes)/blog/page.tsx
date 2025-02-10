@@ -1,43 +1,13 @@
 import Link from 'next/link'
-import { FiArrowLeft, FiCalendar, FiClock } from 'react-icons/fi'
+import { FiArrowLeft, FiCalendar, FiClock, FiEye } from 'react-icons/fi'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { getBlogPosts } from '@/lib/notion/client'
 
-// Bu interface'i Notion API'den gelen veriye göre güncelleyeceğiz
-interface BlogPost {
-  id: string
-  title: string
-  description: string
-  date: string
-  slug: string
-  readingTime?: string
-  tags?: string[]
-}
+export default async function BlogPage() {
+  const posts = await getBlogPosts()
 
-// Şimdilik örnek veriler kullanıyoruz, daha sonra Notion API ile değiştireceğiz
-const DUMMY_POSTS: BlogPost[] = [
-  {
-    id: '1',
-    title: 'Modern Web Geliştirme',
-    description: 'Modern web geliştirme teknolojileri ve best practice\'ler hakkında düşüncelerim. React, Next.js, ve diğer modern araçların kullanımı hakkında detaylı bir rehber.',
-    date: '2024-02-20',
-    slug: 'modern-web-development',
-    readingTime: '5 dk',
-    tags: ['React', 'Next.js', 'Web Development']
-  },
-  {
-    id: '2',
-    title: 'Docker ile Mikroservisler',
-    description: 'Docker kullanarak mikroservis mimarisi nasıl oluşturulur? Konteynerleştirme, orkestrasyon ve dağıtık sistemler hakkında kapsamlı bir inceleme.',
-    date: '2024-02-18',
-    slug: 'docker-microservices',
-    readingTime: '8 dk',
-    tags: ['Docker', 'Microservices', 'DevOps']
-  }
-]
-
-export default function BlogPage() {
   return (
     <main className="flex min-h-screen flex-col bg-background">
       <div className="container mx-auto max-w-4xl px-4 py-8">
@@ -48,64 +18,75 @@ export default function BlogPage() {
         >
           <Link href="/">
             <FiArrowLeft className="h-4 w-4" />
-            Ana Sayfa
+            Back to Home
           </Link>
         </Button>
 
-        <div className="mb-8 space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">
-            Blog Yazılarım
-          </h1>
-          <p className="text-muted-foreground">
-            Yazılım geliştirme, teknoloji ve deneyimlerim hakkında düşüncelerimi paylaşıyorum.
-          </p>
+        {/* Hero Section */}
+        <div className="relative mb-12 space-y-4">
+          <div className="space-y-2">
+            <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
+              Blog & Articles
+            </h1>
+            <p className="text-sm text-muted-foreground sm:text-base">
+              Exploring software development, technology trends, and sharing my experiences in building modern applications.
+            </p>
+          </div>
+
+          {/* Background Pattern */}
+          <div className="absolute inset-0 -z-10 overflow-hidden">
+            <div className="absolute -left-4 top-20 h-48 w-48 rounded-full bg-primary/5 blur-3xl sm:h-72 sm:w-72" />
+            <div className="absolute -right-4 top-40 h-48 w-48 rounded-full bg-primary/10 blur-3xl sm:h-72 sm:w-72" />
+          </div>
         </div>
 
-        <div className="grid gap-4">
-          {DUMMY_POSTS.map((post) => (
-            <Card key={post.id} className="overflow-hidden transition-colors hover:bg-muted/50">
-              <Link href={`/blog/${post.slug}`} className="block">
+        {/* Blog Posts Grid */}
+        <div className="grid gap-6">
+          {posts.map((post) => (
+            <Link key={post.id} href={`/blog/${post.slug}`}>
+              <Card className="group relative transition-all hover:shadow-lg">
                 <CardHeader>
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-xl">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <CardTitle className="text-lg group-hover:text-primary">
                         {post.title}
                       </CardTitle>
-                      <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                        <FiCalendar className="h-3.5 w-3.5" />
-                        <time>
-                          {new Date(post.date).toLocaleDateString('tr-TR', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })}
-                        </time>
+                      <div className="mt-1 flex flex-col gap-1.5 text-sm text-muted-foreground sm:flex-row sm:items-center sm:gap-3">
+                        <div className="flex items-center gap-1.5">
+                          <FiCalendar className="h-3.5 w-3.5" />
+                          <time>
+                            {new Date(post.date).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
+                          </time>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <FiClock className="h-3.5 w-3.5" />
+                          <span>5 min read</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <FiEye className="h-3.5 w-3.5" />
+                          <span>1.2K views</span>
+                        </div>
                       </div>
                     </div>
-                    <CardDescription className="text-sm">
-                      {post.description}
-                    </CardDescription>
+                    {post.tags?.[0] && (
+                      <Badge>{post.tags[0]}</Badge>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-wrap gap-2">
-                      {post.tags?.map((tag) => (
-                        <Badge key={tag} variant="secondary" className="px-2 py-0.5 text-xs">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                    {post.readingTime && (
-                      <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                        <FiClock className="h-3.5 w-3.5" />
-                        <span>{post.readingTime}</span>
-                      </div>
-                    )}
-                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {post.description}
+                  </p>
                 </CardContent>
-              </Link>
-            </Card>
+                <div className="absolute inset-0 flex items-center justify-center bg-background/80 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
+                  <p className="text-sm font-medium">Continue reading →</p>
+                </div>
+              </Card>
+            </Link>
           ))}
         </div>
       </div>
