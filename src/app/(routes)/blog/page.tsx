@@ -8,6 +8,7 @@ import { getPostViews } from '@/supabase/queries'
 import { Suspense } from 'react'
 import { PostMeta } from '@/components/blog/post-meta'
 import { Loading } from '@/components/ui/loading'
+import { ModernBreadcrumb } from '@/components/ui/breadcrumb'
 
 interface BlogPageProps {
   searchParams: { [key: string]: string | string[] | undefined }
@@ -16,6 +17,12 @@ interface BlogPageProps {
 export default async function BlogPage({ searchParams }: BlogPageProps) {
   const category = typeof (await searchParams).category === 'string' ? (await searchParams).category : 'all'
   
+  const breadcrumbItems = [
+    { label: 'Ana Sayfa', href: '/' },
+    { label: 'Blog', href: '/blog' },
+    ...(category !== 'all' ? [{ label: String(category), href: `/blog?category=${category}` }] : [])
+  ]
+  
   return (
     <div className="relative min-h-screen bg-background">
       <Suspense key={`blog-${category}`} fallback={
@@ -23,6 +30,9 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
           <Loading />
         </div>
       }>
+        <div className="py-4">
+          <ModernBreadcrumb items={breadcrumbItems} />
+        </div>
         <BlogContent searchParams={await searchParams} />
       </Suspense>
     </div>
