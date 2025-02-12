@@ -18,7 +18,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
   
   return (
     <div className="relative min-h-screen bg-background">
-      <Suspense fallback={
+      <Suspense key={`blog-${category}`} fallback={
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
           <Loading />
         </div>
