@@ -14,18 +14,23 @@ interface BlogPageProps {
 }
 
 export default async function BlogPage({ searchParams }: BlogPageProps) {
-  const category = typeof searchParams.category === 'string' ? searchParams.category : 'all'
+  const category = typeof (await searchParams).category === 'string' ? (await searchParams).category : 'all'
   
   return (
     <div className="relative min-h-screen bg-background">
-      <Suspense key={category} fallback={<Loading />}>
-        <BlogContent searchParams={searchParams} />
+      <Suspense fallback={
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
+          <Loading />
+        </div>
+      }>
+        <BlogContent searchParams={await searchParams} />
       </Suspense>
     </div>
   )
 }
 
 async function BlogContent({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
+  const category = typeof (await searchParams).category === 'string' ? (await searchParams).category : ''
   const posts = await getBlogPosts()
 
   const postsWithViews = await Promise.all(
@@ -35,7 +40,6 @@ async function BlogContent({ searchParams }: { searchParams: { [key: string]: st
     })
   )
 
-  const category = typeof searchParams.category === 'string' ? searchParams.category : ''
   const selectedCategory = category || 'All'
   const categories = ['All', ...new Set(postsWithViews.map(post => post.category).filter(Boolean))]
   const filteredPosts = selectedCategory === 'All' 
