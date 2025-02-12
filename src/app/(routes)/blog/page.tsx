@@ -10,24 +10,23 @@ import { PostMeta } from '@/components/blog/post-meta'
 import { Loading } from '@/components/ui/loading'
 
 interface BlogPageProps {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+  searchParams: { [key: string]: string | string[] | undefined }
 }
 
 export default async function BlogPage({ searchParams }: BlogPageProps) {
+  const category = typeof searchParams.category === 'string' ? searchParams.category : 'all'
+  
   return (
     <div className="relative min-h-screen bg-background">
-      <Suspense fallback={<Loading />}>
+      <Suspense key={category} fallback={<Loading />}>
         <BlogContent searchParams={searchParams} />
       </Suspense>
     </div>
   )
 }
 
-async function BlogContent({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
-  const [posts, params] = await Promise.all([
-    getBlogPosts(),
-    searchParams
-  ])
+async function BlogContent({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
+  const posts = await getBlogPosts()
 
   const postsWithViews = await Promise.all(
     posts.map(async (post) => {
@@ -36,7 +35,7 @@ async function BlogContent({ searchParams }: { searchParams: Promise<{ [key: str
     })
   )
 
-  const category = typeof params.category === 'string' ? params.category : ''
+  const category = typeof searchParams.category === 'string' ? searchParams.category : ''
   const selectedCategory = category || 'All'
   const categories = ['All', ...new Set(postsWithViews.map(post => post.category).filter(Boolean))]
   const filteredPosts = selectedCategory === 'All' 
@@ -58,22 +57,24 @@ async function BlogContent({ searchParams }: { searchParams: Promise<{ [key: str
 
         {/* Category Filters */}
         <div className="flex flex-wrap gap-2">
-          {categories.map((category) => (
+          {categories.map((cat) => (
             <Button
-              key={category}
+              key={cat}
               variant="outline"
               size="sm"
               className={`transition-all duration-200 min-w-[80px] h-8 ${
-                selectedCategory === category 
+                selectedCategory === cat 
                   ? "bg-[#1a1f36] text-white dark:bg-white dark:text-[#1a1f36]" 
                   : "hover:bg-[#1a1f36] hover:text-white dark:hover:bg-white dark:hover:text-[#1a1f36]"
               }`}
-              asChild>
+              asChild
+            >
               <Link 
-                href={category === 'All' ? '/blog' : `/blog?category=${category}`}
+                href={cat === 'All' ? '/blog' : `/blog?category=${cat}`}
                 scroll={false}
+                prefetch={true}
               >
-                {category}
+                {cat}
               </Link>
             </Button>
           ))}
