@@ -1,5 +1,6 @@
 import { Client } from '@notionhq/client'
 import { isFullPage } from '@notionhq/client'
+import { Book } from '@/types'
 import { 
   PageObjectResponse, 
   BlockObjectResponse,
@@ -15,6 +16,10 @@ if (!process.env.NOTION_API_KEY) {
 
 if (!process.env.NOTION_BLOG_DATABASE_ID) {
   throw new Error('Missing Notion blog database ID')
+}
+
+if (!process.env.NOTION_LIBRARY_DATABASE_ID) {
+  throw new Error('Missing Notion library database ID')
 }
 
 export const notion = new Client({
@@ -271,5 +276,66 @@ export async function getBlogPost(slug: string): Promise<NotionBlogPost | null> 
   } catch (error) {
     console.error('Error fetching blog post:', error)
     return null
+  }
+}
+
+export async function getBooks() {
+  try {
+    const response = await notion.databases.query({
+      database_id: process.env.NOTION_LIBRARY_DATABASE_ID!,
+      filter: {
+        property: 'Status',
+        status: {
+          does_not_equal: 'Not Started'
+        }
+      },
+      sorts: [
+        {
+          property: 'Title',
+          direction: 'ascending',
+        },
+      ],
+    })
+
+    return response.results.map((page) => {
+      if (!isFullPage(page)) return null
+
+      const { properties } = page as PageObjectResponse
+      
+      const description = properties.Description?.type === 'rich_text'
+        ? properties.Description.rich_text[0]?.plain_text || ''
+        : ''
+
+      const rating = properties.Rating?.type === 'number' && properties.Rating.number
+        ? `${(properties.Rating.number / 20).toFixed(1)}/5`
+        : 'Not rated'
+
+      return {
+        id: page.id,
+        title: properties.Title?.type === 'title' 
+          ? properties.Title.title[0]?.plain_text || ''
+          : '',
+        author: properties.Author?.type === 'rich_text'
+          ? properties.Author.rich_text[0]?.plain_text || ''
+          : '',
+        status: properties.Status?.type === 'status'
+          ? properties.Status.status?.name || 'Not Started'
+          : 'Not Started',
+        category: properties.Category?.type === 'multi_select'
+          ? properties.Category.multi_select.map(cat => cat.name)
+          : [],
+        rating,
+        total_pages: properties['Total Pages']?.type === 'number'
+          ? properties['Total Pages'].number || 0
+          : 0,
+        cover_image: properties['Cover Image']?.type === 'url'
+          ? properties['Cover Image'].url || ''
+          : '',
+        description: description || 'Şu an okuyorum.'
+      }
+    }).filter(Boolean) as Book[]
+  } catch (error) {
+    console.error('Error fetching books:', error)
+    return []
   }
 }

@@ -16,7 +16,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { getEducation, getExperience, getSkills, getProjects, getCertificates, getUserProfile, getRandomProjects } from '@/supabase/queries'
-import { getBlogPosts } from '@/lib/notion/client'
+import { getBlogPosts, getBooks } from '@/lib/notion/client'
 import { getPostViews } from '@/supabase/queries'
 import { ScrollProgress } from '@/components/ui/scroll-progress'
 import { PostMeta } from '@/components/blog/post-meta'
@@ -40,6 +40,7 @@ async function HomeContent() {
   const education = await getEducation()
   const skills = await getSkills()
   const blogPosts = await getBlogPosts()
+  const books = await getBooks()
   
   const postsWithViews = await Promise.all(
     blogPosts.slice(0, 3).map(async (post) => {
@@ -643,6 +644,65 @@ async function HomeContent() {
               </Card>
             </Link>
           ))}
+        </div>
+      </section>
+      
+      {/* Currently Reading Section */}
+      <section className="container mx-auto max-w-4xl px-4 py-8 sm:py-12">
+      <div className="mb-6 flex items-center justify-between">
+          <h2 className="text-xl font-bold tracking-tight sm:mb-8 sm:text-2xl">Currently Reading</h2>
+          <Button variant="outline" className="h-8 w-fit sm:h-10 transition-all duration-200 hover:bg-[#1a1f36] hover:text-white dark:hover:bg-white dark:hover:text-[#1a1f36]" asChild>
+            <a href="/library">
+              View All
+              <FiExternalLink className="h-4 w-4" />
+            </a>
+          </Button>
+        </div>
+        <div className="grid gap-6 sm:grid-cols-2">
+          {books
+            .filter(book => book.status === 'Reading')
+            .slice(0, 2)
+            .map((book) => (
+              <Card key={book.id} className="group relative overflow-hidden">
+                <div className="flex p-6">
+                  <div className="relative h-[120px] w-[80px] flex-shrink-0">
+                    <Image
+                      src={book.cover_image}
+                      alt={book.title}
+                      fill
+                      className="rounded-sm object-contain"
+                      sizes="80px"
+                    />
+                  </div>
+                  <div className="ml-4 flex flex-col">
+                    <h3 className="font-semibold group-hover:text-primary">
+                      {book.title}
+                    </h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {book.author}
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {Array.isArray(book.category) && book.category.map((cat, index) => (
+                        <Badge key={index} variant="secondary" className="text-xs">
+                          {cat}
+                        </Badge>
+                      ))}
+                    </div>
+                    <div className="mt-auto">
+                      <div className="mt-auto flex items-center gap-1 text-xs text-muted-foreground">
+                        <FiStar className="h-3.5 w-3.5 fill-primary text-primary" />
+                        <span className="flex items-center">{book.rating === 'Not rated' ? 'Not rated' : `${book.rating}`}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="absolute inset-0 flex items-center justify-center bg-background/80 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
+                  <p className="mx-6 text-sm text-center">
+                    {book.description}
+                  </p>
+                </div>
+              </Card>
+            ))}
         </div>
       </section>
 

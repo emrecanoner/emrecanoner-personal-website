@@ -35,7 +35,7 @@ async function BlogPostContent({ slug }: { slug: string }) {
   }
 
   const breadcrumbItems = [
-    { label: 'Ana Sayfa', href: '/' },
+    { label: 'Home', href: '/' },
     { label: 'Blog', href: '/blog' },
     ...(post.category ? [{ label: post.category, href: `/blog?category=${post.category}` }] : []),
     { label: post.title, href: `/blog/${slug}` }

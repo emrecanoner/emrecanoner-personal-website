@@ -18,7 +18,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
   const category = typeof (await searchParams).category === 'string' ? (await searchParams).category : 'all'
   
   const breadcrumbItems = [
-    { label: 'Ana Sayfa', href: '/' },
+    { label: 'Home', href: '/' },
     { label: 'Blog', href: '/blog' },
     ...(category !== 'all' ? [{ label: String(category), href: `/blog?category=${category}` }] : [])
   ]
@@ -78,7 +78,7 @@ async function BlogContent({ searchParams }: { searchParams: { [key: string]: st
               size="sm"
               className={`transition-all duration-200 min-w-[80px] h-8 ${
                 selectedCategory === cat 
-                  ? "bg-[#1a1f36] text-white dark:bg-white dark:text-[#1a1f36]" 
+                  ? "bg-[#1a1f36] text-white dark:bg-white dark:text-[#1a1f36] hover:bg-[#1a1f36] hover:text-white dark:hover:bg-white dark:hover:text-[#1a1f36]" 
                   : "hover:bg-[#1a1f36] hover:text-white dark:hover:bg-white dark:hover:text-[#1a1f36]"
               }`}
               asChild

@@ -101,4 +101,16 @@ export interface SocialLink {
   url: string
   created_at: string
   updated_at: string
+}
+
+export interface Book {
+  id: string
+  title: string
+  author: string
+  status: string
+  category: string[]
+  rating: string | number
+  total_pages: number
+  cover_image: string
+  description: string
 } 

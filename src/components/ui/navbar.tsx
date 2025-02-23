@@ -19,7 +19,7 @@ export default function Navbar() {
             emrecanoner.dev
           </Link>
 
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               className="text-muted-foreground hover:text-foreground"
@@ -29,9 +29,16 @@ export default function Navbar() {
             </Button>
             <Button
               variant="ghost"
+              className="text-muted-foreground hover:text-foreground"
+              asChild
+            >
+              <Link href="/library">Library</Link>
+            </Button>
+            <Button
+              variant="ghost"
               size="icon"
               onClick={toggleTheme}
-              className="text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground ml-1"
             >
               <FiSun className="hidden h-5 w-5 dark:block" />
               <FiMoon className="h-5 w-5 dark:hidden" />
